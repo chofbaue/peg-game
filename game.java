@@ -1,6 +1,10 @@
 import java.lang.reflect.Array;
 import java.util.*;
 
+/**
+ * Axis - Represents a valid movement vector for a given move.
+ * In the peg game, there are three defined movement paths.
+ */
 enum Axis {
     /**
      * DIAGONAL_LEFT - The axis in which the y-value changes, while the x-value remains constant.
@@ -19,6 +23,10 @@ enum Axis {
     HORIZONTAL
 }
 
+/**
+ * Direction - Specifies the movement in either an increasing or decreasing manner on a given axis.
+ * In the peg game, there are two directions.
+ */
 enum Direction {
     /**
      * FORWARD - The direction of increasing axis values.
@@ -41,9 +49,21 @@ enum Direction {
  * as well as the axis and direction of peg activity.
  */
 class Move {
+    /**
+     * this.axis - The axis of movement for this move
+     */
     Axis axis;
+    /**
+     * this.direction - The direction of movement for this move
+     */
     Direction direction;
+    /**
+     * this.x - The x-coordinate of the end of a move, where the peg movement completes.
+     */
     int x;
+    /**
+     * Move.y - The y-coordinate of the end of a move, where the peg movement completes.
+     */
     int y;
     public Move(Axis axis, Direction direction, int destX, int destY) {
         this.axis = axis;
@@ -52,6 +72,13 @@ class Move {
         this.y = destY;
     }
 
+    /**
+     * toString() - returns a formatted string specifying the peg movement from
+     * the <code>(starting, pos) -> (ending, pos)</code>.
+     * <strong>Note:</strong> the formatted coordinates are specified in <code>(y,x)</code> fashion.
+     *
+     * @return Formatted string, showing peg movement for this move.
+     */
     public String toString() {
         return "(" + game.getStartingY(axis, direction, y) + ", " + game.getStartingX(axis, direction, x) + ") " +
                 "-> (" + y + ", " + x + ")";
@@ -66,6 +93,7 @@ class Move {
 public class game {
 
     static boolean solutionFound = false;
+    static int iterationCount = 0;
 
     public static int getStartingX(Axis a, Direction d, int destX) {
 
@@ -102,6 +130,7 @@ public class game {
         for (Axis a : Axis.values()) {
             for (Direction d : Direction.values()) {
 
+                // Get the position of the hypothetical peg starting position
                 int furthestX = getStartingX(a, d, x);
                 int furthestY = getStartingY(a, d, y);
 
@@ -123,68 +152,13 @@ public class game {
                     continue;
                 }
 
-
+                // Now, proceed to add the move to the list of valid moves.
                 validMoves.add(new Move(a, d, x, y));
             }
         }
 
 
         return validMoves;
-    }
-
-    public static ArrayList<Move> solveHelper(boolean[][] board, ArrayList<Move> movesTaken) {
-
-        // Base case: check if no more moves can be made
-        if (numPegs(board) == 1) {
-            solutionFound = true;
-            return movesTaken;
-        }
-
-        // Get the list of all possible moves
-        ArrayList<Move> allMoves = new ArrayList<>();
-        ArrayList<Move> discoveredMoves;
-
-        // Iterate through all possible spaces on the board
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-
-                // A spot that is occupied by a peg is TRUE
-                // Meaning that a move cannot be performed at
-                // this space.
-                if (board[i][j]) {
-                    continue;
-                }
-
-                // Discover all valid move options
-                discoveredMoves = getValidMoves(i, j, board);
-
-                // Add all discovered moves into "allMoves"
-                allMoves.addAll(discoveredMoves);
-            }
-        }
-
-        // Randomize all moves list
-        Collections.shuffle(allMoves);
-
-        // From the list of all moves, recursively call
-        // this method by making all possible moves
-        ArrayList<Move> returned;
-        for (Move m : allMoves) {
-            // Take move
-            takeMove(board, m, movesTaken);
-
-            // Find next moves
-            returned = solveHelper(board, movesTaken);
-
-            // If the solution was found in the returned list of solutions,
-            // return the list of solutions
-            if (solutionFound)  return returned;
-
-            // Undo this move
-            undoMove(board, movesTaken, m);
-        }
-
-        return null;
     }
 
     /**
@@ -206,9 +180,9 @@ public class game {
 
     /**
      * numMoves - A simplified method of <code>numPegs</code>, which adds the length of every row
-     * (number of possible x-values on each row), iterating on each row (the y-axis)
+     * (number of possible x-values on each row), iterating on each row (the y-axis).
      * @param board The board to solve
-     * @return count Maximum number of moves to achieve an optimal solution.
+     * @return Maximum number of moves to achieve an optimal solution.
      */
     private static int numMoves(boolean[][] board) {
         int count = 0;
@@ -283,6 +257,69 @@ public class game {
         movesTaken.remove(m);
     }
 
+    public static ArrayList<Move> solveHelper(boolean[][] board, ArrayList<Move> movesTaken, int level) {
+
+        // Check iteration counter
+        if (iterationCount++ % 1000000 == 0) {
+            System.out.println("Iteration: " + iterationCount);
+            printBoard(board);
+        }
+
+        // Base case: check if no more moves can be made
+        if (movesTaken.size() == numMoves(board)) {
+            //if (numPegs(board) == 1) {
+            System.out.println("SOLUTION FOUND:\nFinal Iteration: " + iterationCount);
+            solutionFound = true;
+            return movesTaken;
+        }
+
+        // Get the list of all possible moves
+        ArrayList<Move> allMoves = new ArrayList<>();
+        ArrayList<Move> discoveredMoves;
+
+        // Iterate through all possible spaces on the board
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+
+                // A spot that is occupied by a peg is TRUE
+                // Meaning that a move cannot be performed at
+                // this space.
+                if (board[i][j]) {
+                    continue;
+                }
+
+                // Discover all valid move options
+                discoveredMoves = getValidMoves(i, j, board);
+
+                // Add all discovered moves into "allMoves"
+                allMoves.addAll(discoveredMoves);
+            }
+        }
+
+        // Randomize all moves list
+        //Collections.shuffle(allMoves);
+
+        // From the list of all moves, recursively call
+        // this method by making all possible moves
+        ArrayList<Move> returned;
+        for (Move m : allMoves) {
+            // Take move
+            takeMove(board, m, movesTaken);
+
+            // Find next moves
+            returned = solveHelper(board, movesTaken, level+1);
+
+            // If the solution was found in the returned list of solutions,
+            // return the list of solutions
+            if (solutionFound)  return returned;
+
+            // Undo this move
+            undoMove(board, movesTaken, m);
+        }
+
+        return null;
+    }
+
     public static boolean solveBoard(boolean[][] board) {
 
         ArrayList<Move> moves;  // Keep a list of moves taken
@@ -290,7 +327,7 @@ public class game {
 
 
         // Solve board
-        moves = solveHelper(board, new ArrayList<>());
+        moves = solveHelper(board, new ArrayList<>(), 0);
 
         // If the board is unsolveable, there is no solution
         // Return false to indicate this, as well as printing to STDOUT
@@ -338,9 +375,19 @@ public class game {
     }
 
     public static void main(String[] args) {
+
+        boolean[][] selectedBoard;
+
         Scanner s = new Scanner(System.in);
 
-        boolean[][] board = {
+        boolean[][] smallBoard = {
+                {true},
+                {false, true},
+                {true, true, true},
+                {true, true, true, true}
+        };
+
+        boolean[][] standardBoard = {
                 {false},
                 {true, true},
                 {true, true, true},
@@ -348,10 +395,32 @@ public class game {
                 {true, true, true, true, true}
         };
 
-        System.out.println(" Starting Board:");
-        printBoard(board);
+        boolean[][] largeBoard = {
+                {false},
+                {true, true},
+                {true, true, true},
+                {true, true, true, true},
+                {true, true, true, true, true},
+                {true, true, true, true, true, true}
+        };
 
-        solveBoard(board);
+        boolean[][] megaBoard = {
+                {true},
+                {true, true},
+                {true, true, true},
+                {true, true, true, true},
+                {true, true, true, true, true},
+                {true, true, true, true, true, true},
+                {true, true, true, true, true, true, false}
+        };
+
+        selectedBoard = smallBoard;
+
+
+        System.out.println(" Starting Board:");
+
+        printBoard(selectedBoard);
+        solveBoard(selectedBoard);
     }
 
     private static void printBoard(boolean[][] board) {
