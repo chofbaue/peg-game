@@ -2,7 +2,7 @@ import java.util.*;
 
 /**
  * game - A class which holds the solving methods to solve a given peg board,
- * as well as miscellaneous helper methods for solving the infamouspeg game,
+ * as well as miscellaneous helper methods for solving the infamous peg game,
  * printing the board, and computing peg locations.
  */
 public class game {
@@ -209,6 +209,7 @@ public class game {
         // Check iteration counter
         if (iterationCount++ % 1000000 == 0) {
             System.out.println("Iteration: " + iterationCount);
+            System.out.println("Depth: " + level);
             printBoard(board);
         }
 
@@ -221,8 +222,10 @@ public class game {
         }
 
         // Get the list of all possible moves
-        ArrayList<Move> allMoves = new ArrayList<>();
-        ArrayList<Move> discoveredMoves;
+        ArrayList<Move> allMoves;
+
+
+        //ArrayList<Move> discoveredMoves;
 
         //// Iterate through all possible spaces on the board
         //for (int i = 0; i < board.length; i++) {
@@ -252,6 +255,7 @@ public class game {
         // From the list of all moves, recursively call
         // this method by making all possible moves
         ArrayList<Move> returned;
+
         for (Move m : allMoves) {
             // Take move
             takeMove(board, m, movesTaken);
@@ -435,7 +439,7 @@ public class game {
 
         boolean[][] megaBoard = {
                 {true},
-                {false, true},
+                {true, false},
                 {true, true, true},
                 {true, true, true, true},
                 {true, true, true, true, true},
@@ -443,7 +447,7 @@ public class game {
                 {true, true, true, true, true, true, true}
         };
 
-        selectedBoard = megaBoard;
+        selectedBoard = largeBoard;
 
 
         System.out.println(" Starting Board:");
