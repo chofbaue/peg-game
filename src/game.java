@@ -1,89 +1,4 @@
-import java.lang.reflect.Array;
 import java.util.*;
-
-/**
- * Axis - Represents a valid movement vector for a given move.
- * In the peg game, there are three defined movement paths.
- */
-enum Axis {
-    /**
-     * DIAGONAL_LEFT - The axis in which the y-value changes, while the x-value remains constant.
-     * As seen from a traditional board, this move would be going either "down and left" or "up and right".
-     */
-    DIAGONAL_LEFT,
-    /**
-     * DIAGONAL_RIGHT - The axis in which the y-value changes, while also the x-values change in the same manner.
-     * As seen from a traditional board, this move would be going either "down and right" or "up and left".
-     */
-    DIAGONAL_RIGHT,
-    /**
-     * HORIZONTAL - The axis in which the x-value changes, while the y-value remains constant.
-     * As seen from a traditional board, this move would be going either "right" or "left"
-     */
-    HORIZONTAL
-}
-
-/**
- * Direction - Specifies the movement in either an increasing or decreasing manner on a given axis.
- * In the peg game, there are two directions.
- */
-enum Direction {
-    /**
-     * FORWARD - The direction of increasing axis values.
-     *   - For DIAGONAL_LEFT axis: y-values increases.
-     *   - For DIAGONAL_RIGHT axis: y and x-values increases.
-     *   - For HORIZONTAL values, x-values increases.
-     */
-    FORWARD,
-    /**
-     * FORWARD - The direction of decreasing axis values.
-     *   - For DIAGONAL_LEFT axis: y-values decreases.
-     *   - For DIAGONAL_RIGHT axis: y and x-values decreases.
-     *   - For HORIZONTAL values, x-values decreases.
-     */
-    BACKWARD
-}
-
-/**
- * Move - A class which represents the destination x and y values for a target peg,
- * as well as the axis and direction of peg activity.
- */
-class Move {
-    /**
-     * this.axis - The axis of movement for this move
-     */
-    Axis axis;
-    /**
-     * this.direction - The direction of movement for this move
-     */
-    Direction direction;
-    /**
-     * this.x - The x-coordinate of the end of a move, where the peg movement completes.
-     */
-    int x;
-    /**
-     * Move.y - The y-coordinate of the end of a move, where the peg movement completes.
-     */
-    int y;
-    public Move(Axis axis, Direction direction, int destX, int destY) {
-        this.axis = axis;
-        this.direction = direction;
-        this.x = destX;
-        this.y = destY;
-    }
-
-    /**
-     * toString() - returns a formatted string specifying the peg movement from
-     * the <code>(starting, pos) -> (ending, pos)</code>.
-     * <strong>Note:</strong> the formatted coordinates are specified in <code>(y,x)</code> fashion.
-     *
-     * @return Formatted string, showing peg movement for this move.
-     */
-    public String toString() {
-        return "(" + game.getStartingY(axis, direction, y) + ", " + game.getStartingX(axis, direction, x) + ") " +
-                "-> (" + y + ", " + x + ")";
-    }
-}
 
 /**
  * game - A class which holds the solving methods to solve a given peg board,
@@ -161,6 +76,33 @@ public class game {
         return validMoves;
     }
 
+    public static ArrayList<Move> getAllMoves(boolean[][] board) {
+
+        ArrayList<Move> allMoves = new ArrayList<>();
+        ArrayList<Move> discoveredMoves;
+
+        // Iterate through all possible spaces on the board
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+
+                // A spot that is occupied by a peg is TRUE
+                // Meaning that a move cannot be performed at
+                // this space.
+                if (board[i][j]) {
+                    continue;
+                }
+
+                // Discover all valid move options
+                discoveredMoves = getValidMoves(i, j, board);
+
+                // Add all discovered moves into "allMoves"
+                allMoves.addAll(discoveredMoves);
+            }
+        }
+
+        return allMoves;
+    }
+
     /**
      * numPegs - A bloated method of <code>numMoves</code>, which counts each spot on the board which has a peg.
      * @param board - The board to solve
@@ -234,7 +176,7 @@ public class game {
         movesTaken.add(m);
     }
 
-    private static void undoMove(boolean[][] board, ArrayList<Move> movesTaken, Move m) {
+    private static void undoMove(boolean[][] board, Move m) {
         // Coordinate of original peg location
         int x1 = getStartingX(m.axis, m.direction, m.x);
         int y1 = getStartingY(m.axis, m.direction, m.y);
@@ -252,6 +194,11 @@ public class game {
         board[y1][x1] = true;
         board[y2][x2] = true;
         board[y3][x3] = false;
+    }
+
+    private static void undoMove(boolean[][] board, Move m, ArrayList<Move> movesTaken) {
+
+        undoMove(board, m);
 
         // Remove this move from the list of moves taken
         movesTaken.remove(m);
@@ -277,27 +224,30 @@ public class game {
         ArrayList<Move> allMoves = new ArrayList<>();
         ArrayList<Move> discoveredMoves;
 
-        // Iterate through all possible spaces on the board
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
+        //// Iterate through all possible spaces on the board
+        //for (int i = 0; i < board.length; i++) {
+        //    for (int j = 0; j < board[i].length; j++) {
 
-                // A spot that is occupied by a peg is TRUE
-                // Meaning that a move cannot be performed at
-                // this space.
-                if (board[i][j]) {
-                    continue;
-                }
+        //        // A spot that is occupied by a peg is TRUE
+        //        // Meaning that a move cannot be performed at
+        //        // this space.
+        //        if (board[i][j]) {
+        //            continue;
+        //        }
 
-                // Discover all valid move options
-                discoveredMoves = getValidMoves(i, j, board);
+        //        // Discover all valid move options
+        //        discoveredMoves = getValidMoves(i, j, board);
 
-                // Add all discovered moves into "allMoves"
-                allMoves.addAll(discoveredMoves);
-            }
-        }
+        //        // Add all discovered moves into "allMoves"
+        //        allMoves.addAll(discoveredMoves);
+        //    }
+        //}
+        allMoves = getAllMoves(board);
 
         // Randomize all moves list
         //Collections.shuffle(allMoves);
+
+        sortByMaxMoves(board, allMoves);
 
         // From the list of all moves, recursively call
         // this method by making all possible moves
@@ -314,10 +264,89 @@ public class game {
             if (solutionFound)  return returned;
 
             // Undo this move
-            undoMove(board, movesTaken, m);
+            undoMove(board, m, movesTaken);
         }
 
         return null;
+    }
+
+    /**
+     * sortByMaxMoves - Sorts all possible next moves as a max heap,
+     * based on the number of possible moves when one move is taken
+     * from the list of all possible moves.
+     *
+     * @param board
+     * @param allMoves
+     */
+    public static ArrayList<Move> sortByMaxMoves(boolean[][] board, ArrayList<Move> allMoves) {
+
+        ArrayList<Move> sortedMoves = new ArrayList<>();
+        ArrayList<Integer> sortedNumMoves = new ArrayList<>();
+
+        // nextMoveBoard - copy of the inputted board which
+        // simulates any next possible move
+        boolean[][] nextMoveBoard = copyBoard(board);
+
+        // Records the number of moves (i.e., the size of the
+        // number of all possible move combinations, resulting
+        // from the call to getAllMoves)
+        int numMoves;
+
+        // Iterate through each move in inputted moves list
+        for (Move m : allMoves) {
+
+            // Simulate taking next move
+            takeMove(nextMoveBoard, m);
+
+            // Find out how many moves we can yield after
+            // taking next move from the simulated board
+            numMoves = getAllMoves(nextMoveBoard).size();
+
+            // Insert as a max heap
+            insertByNumMoves(m, numMoves, sortedMoves, sortedNumMoves);
+
+            // Reset board
+            undoMove(board, m);
+        }
+
+        //System.out.println(Arrays.toString(sortedMoves.toArray()));
+
+        return sortedMoves;
+
+    }
+
+    /**
+     *
+     * @param m
+     * @param numMoves
+     * @param sortedMoves
+     * @param sortedNumMoves
+     */
+    private static void insertByNumMoves(
+            Move m,
+            int numMoves,
+            ArrayList<Move> sortedMoves,
+            ArrayList<Integer> sortedNumMoves) {
+
+        if (sortedMoves.size() == 0) {
+            sortedMoves.add(m);
+            sortedNumMoves.add(numMoves);
+            return;
+        }
+
+        int index = 0;
+
+        for (Integer i : sortedNumMoves) {
+
+            if (numMoves > i) {
+                break;
+            }
+
+            index++;
+        }
+
+        sortedMoves.add(index, m);
+        sortedNumMoves.add(index, numMoves);
     }
 
     public static boolean solveBoard(boolean[][] board) {
@@ -406,15 +435,15 @@ public class game {
 
         boolean[][] megaBoard = {
                 {true},
-                {true, true},
+                {false, true},
                 {true, true, true},
                 {true, true, true, true},
                 {true, true, true, true, true},
                 {true, true, true, true, true, true},
-                {true, true, true, true, true, true, false}
+                {true, true, true, true, true, true, true}
         };
 
-        selectedBoard = smallBoard;
+        selectedBoard = megaBoard;
 
 
         System.out.println(" Starting Board:");
