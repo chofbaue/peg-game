@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 
-public class gameTest {
+public class TestGame {
 
     @Test
     public void testGame() {
@@ -37,9 +37,9 @@ public class gameTest {
                 {false, true, false, false}
         };
 
-        ArrayList<Move> allMoves = game.getAllMoves(board);
-        ArrayList<Move> allMoves1 = game.getAllMoves(outcome1);
-        ArrayList<Move> allMoves2 = game.getAllMoves(outcome2);
+        ArrayList<Move> allMoves = Game.getAllMoves(board);
+        ArrayList<Move> allMoves1 = Game.getAllMoves(outcome1);
+        ArrayList<Move> allMoves2 = Game.getAllMoves(outcome2);
         System.out.println(Arrays.toString(allMoves.toArray()));
         System.out.println(Arrays.toString(allMoves1.toArray()));
         System.out.println(Arrays.toString(allMoves2.toArray()));

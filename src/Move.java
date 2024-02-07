@@ -35,7 +35,7 @@ public class Move {
      * @return Formatted string, showing peg movement for this move.
      */
     public String toString() {
-        return "(" + game.getStartingY(axis, direction, y) + ", " + game.getStartingX(axis, direction, x) + ") " +
+        return "(" + Game.getStartingY(axis, direction, y) + ", " + Game.getStartingX(axis, direction, x) + ") " +
                 "-> (" + y + ", " + x + ")";
     }
 }
