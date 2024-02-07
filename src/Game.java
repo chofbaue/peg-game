@@ -6,7 +6,7 @@ import java.util.Scanner;
  * as well as miscellaneous helper methods for solving the infamous peg game,
  * printing the board, and computing peg locations.
  */
-public class game {
+public class Game {
 
     static boolean solutionFound = false;
     static int iterationCount = 0;
